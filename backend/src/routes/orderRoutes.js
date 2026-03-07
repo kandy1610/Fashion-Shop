@@ -5,6 +5,7 @@ const {
   createOrder,
   getPaymentInfo,
   confirmPayment,
+  getBanks,
   getPaymentMethods,
   getOrders,
   getOrderById,
@@ -18,6 +19,7 @@ const {
 
 // Public routes
 router.get('/payment-methods', getPaymentMethods);
+router.get('/banks', getBanks);
 router.get('/number/:orderNumber', getOrderByNumber);
 
 // Webhook routes (public - with gateway signature verification)

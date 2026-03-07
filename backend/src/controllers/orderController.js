@@ -61,7 +61,10 @@ const createOrder = async (req, res) => {
       items,
       totals,
       voucherCode,
-      discount
+      discount,
+      bankKey,
+      customerAccountNumber,
+      amount
     } = req.body;
 
     // Validate required fields
@@ -144,7 +147,12 @@ const createOrder = async (req, res) => {
       notes,
       estimatedDelivery: calculateEstimatedDelivery(),
       paymentInfo: {
-        transferContent
+        transferContent,
+        ...(paymentMethod === 'bank_transfer' && {
+          bankKey: bankKey || 'vietcombank',
+          customerAccountNumber: customerAccountNumber || '',
+          amount: amount != null ? Number(amount) : undefined
+        })
       }
     });
 
@@ -192,16 +200,20 @@ const createOrder = async (req, res) => {
 
     // Add payment instructions for bank transfer
     if (paymentMethod === 'bank_transfer') {
-      const defaultBank = BANK_ACCOUNTS.vietcombank;
+      const selectedBankKey = bankKey && BANK_ACCOUNTS[bankKey] ? bankKey : 'vietcombank';
+      const selectedBank = BANK_ACCOUNTS[selectedBankKey];
+      const payAmount = amount != null ? Number(amount) : order.total;
       responseData.paymentInstructions = {
-        bankName: defaultBank.name,
-        accountNumber: defaultBank.accountNumber,
-        accountHolder: defaultBank.accountHolder,
-        branch: defaultBank.branch,
+        bankKey: selectedBankKey,
+        bankName: selectedBank.name,
+        accountNumber: selectedBank.accountNumber,
+        accountHolder: selectedBank.accountHolder,
+        branch: selectedBank.branch,
         transferContent: transferContent,
-        amount: order.total,
-        qrCode: defaultBank.qrCode
-          .replace('{amount}', order.total)
+        amount: payAmount,
+        customerAccountNumber: customerAccountNumber || order.paymentInfo?.customerAccountNumber || '',
+        qrCode: selectedBank.qrCode
+          .replace('{amount}', payAmount)
           .replace('{orderNumber}', orderNumber),
         note: 'Vui lòng chuyển khoản chính xác nội dung để hệ thống tự động xác nhận'
       };
@@ -355,6 +367,24 @@ const confirmPayment = async (req, res) => {
       success: false,
       message: error.message
     });
+  }
+};
+
+// @desc    Get list of banks for transfer
+// @route   GET /api/orders/banks
+// @access  Public
+const getBanks = async (req, res) => {
+  try {
+    const banks = Object.entries(BANK_ACCOUNTS).map(([id, bank]) => ({
+      id,
+      name: bank.name,
+      accountNumber: bank.accountNumber,
+      accountHolder: bank.accountHolder,
+      branch: bank.branch
+    }));
+    res.json({ success: true, data: banks });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -844,6 +874,7 @@ module.exports = {
   createOrder,
   getPaymentInfo,
   confirmPayment,
+  getBanks,
   getPaymentMethods,
   getOrders,
   getOrderById,

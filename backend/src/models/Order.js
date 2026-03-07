@@ -30,11 +30,14 @@ const addressSchema = new mongoose.Schema({
 
 const paymentInfoSchema = new mongoose.Schema({
   // For bank transfer
+  bankKey: String,           // vietcombank, mbbank, acb
   bankName: String,
   accountNumber: String,
   accountHolder: String,
   transferContent: String,
   paymentDate: Date,
+  customerAccountNumber: String, // Số tài khoản khách dùng để chuyển khoản
+  amount: Number,            // Số tiền thanh toán (VNĐ)
   
   // For e-wallet
   walletType: String, // momo, zalopay

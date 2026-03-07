@@ -33,15 +33,37 @@ export default function Checkout() {
 
   // Payment info state for bank transfer
   const [paymentInfo, setPaymentInfo] = useState<any>(null);
+  // Bank payment: danh sách ngân hàng, ngân hàng chọn, số tài khoản khách
+  const [banks, setBanks] = useState<{ id: string; name: string; accountNumber?: string; accountHolder?: string; branch?: string }[]>([]);
+  const [bankKey, setBankKey] = useState('vietcombank');
+  const [customerAccountNumber, setCustomerAccountNumber] = useState('');
+
+  const defaultBanks = [
+    { id: 'vietcombank', name: 'Ngân hàng TMCP Ngoại thương Việt Nam (VCB)' },
+    { id: 'mbbank', name: 'Ngân hàng TMCP Quân đội (MB)' },
+    { id: 'acb', name: 'Ngân hàng TMCP Á Châu (ACB)' },
+  ];
+  const bankList = banks.length > 0 ? banks : defaultBanks;
 
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
-    
     fetchCart();
   }, [user, navigate]);
+
+  useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const res = await axios.get('/orders/banks');
+        if (res.data?.success && res.data?.data) setBanks(res.data.data);
+      } catch (e) {
+        console.error('Fetch banks error:', e);
+      }
+    };
+    fetchBanks();
+  }, []);
 
   const fetchCart = async () => {
     try {
@@ -301,10 +323,17 @@ export default function Checkout() {
 
     // Step 3 - Submit order
     if (currentStep === 3) {
+      if (formData.paymentMethod === 'bank') {
+        if (!customerAccountNumber.trim()) {
+          setError('Vui lòng nhập số tài khoản ngân hàng của bạn');
+          return;
+        }
+      }
       setSubmitLoading(true);
       setError('');
       try {
-        const orderData = {
+        const totals = calculateTotals();
+        const orderData: any = {
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
@@ -317,8 +346,13 @@ export default function Checkout() {
           notes: formData.notes,
           paymentMethod: formData.paymentMethod === 'bank' ? 'bank_transfer' : formData.paymentMethod,
           items: cart,
-          totals: calculateTotals(),
+          totals,
         };
+        if (formData.paymentMethod === 'bank') {
+          orderData.bankKey = bankKey;
+          orderData.customerAccountNumber = customerAccountNumber.trim();
+          orderData.amount = totals.total;
+        }
 
         const response = await axios.post('/orders', orderData);
         
@@ -562,9 +596,43 @@ export default function Checkout() {
                       />
                       <div className="ml-3">
                         <p className="font-medium text-gray-900">Chuyển khoản ngân hàng</p>
-                        <p className="text-sm text-gray-500">Thực hiện chuyển khoản vào tài khoản của cửa hàng</p>
+                        <p className="text-sm text-gray-500">Chọn ngân hàng, nhập số tài khoản và xác nhận thanh toán</p>
                       </div>
                     </label>
+
+                    {formData.paymentMethod === 'bank' && (
+                      <div className="ml-7 mt-4 p-5 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
+                        <h3 className="font-medium text-gray-900">Thông tin thanh toán ngân hàng</h3>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Chọn ngân hàng thanh toán *</label>
+                          <select
+                            value={bankKey}
+                            onChange={(e) => setBankKey(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          >
+                            {bankList.map((b) => (
+                              <option key={b.id} value={b.id}>{b.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Số tài khoản của bạn *</label>
+                          <input
+                            type="text"
+                            value={customerAccountNumber}
+                            onChange={(e) => setCustomerAccountNumber(e.target.value)}
+                            placeholder="Nhập số tài khoản ngân hàng dùng để chuyển khoản"
+                            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Số tiền thanh toán</label>
+                          <p className="text-lg font-bold text-blue-600">{total.toLocaleString('vi-VN')} VNĐ</p>
+                          <p className="text-xs text-gray-500">Bạn sẽ chuyển khoản đúng số tiền này vào tài khoản cửa hàng sau khi xác nhận đơn hàng.</p>
+                        </div>
+                        <p className="text-sm text-amber-700 bg-amber-50 p-3 rounded">Sau khi bấm &quot;Hoàn tất đơn hàng&quot;, hệ thống sẽ tạo đơn và trả về hóa đơn kèm thông tin chuyển khoản.</p>
+                      </div>
+                    )}
 
                     <label className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-colors flex items-start">
                       <input 

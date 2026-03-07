@@ -1,10 +1,11 @@
 import { Search, Receipt, Phone, Package, Truck, CheckCircle, CreditCard, Clock, AlertCircle, XCircle } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import axios from '../utils/axios';
 
 export default function OrderTracking() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchData, setSearchData] = useState({
     orderNumber: '',
     email: ''
@@ -12,6 +13,19 @@ export default function OrderTracking() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const state = location.state as { orderNumber?: string; email?: string } | null;
+    if (!state?.orderNumber) return;
+    setSearchData({ orderNumber: state.orderNumber, email: state.email || '' });
+    setOrder(null);
+    setError('');
+    setLoading(true);
+    axios.get(`/orders/number/${state.orderNumber}`, { params: { email: state.email } })
+      .then((res) => { if (res.data.success) setOrder(res.data.data); })
+      .catch((err: any) => setError(err.response?.data?.message || 'Không tìm thấy đơn hàng'))
+      .finally(() => setLoading(false));
+  }, [location.state]);
 
   const handleSearch = async () => {
     if (!searchData.orderNumber) {

@@ -179,7 +179,19 @@ export default function OrderSuccess() {
 
             <div className="info-section" style={{ clear: 'both', marginTop: '30px' }}>
               <h3>Phương thức thanh toán</h3>
-              <p>${paymentMethodLabel[displayOrder.paymentMethod]}</p>
+              <p>{paymentMethodLabel[displayOrder.paymentMethod]}</p>
+              {paymentInstructions && (
+                <>
+                  <p><strong>Ngân hàng:</strong> {paymentInstructions.bankName}</p>
+                  <p><strong>Số tài khoản cửa hàng:</strong> {paymentInstructions.accountNumber}</p>
+                  <p><strong>Chủ tài khoản:</strong> {paymentInstructions.accountHolder}</p>
+                  <p><strong>Nội dung chuyển khoản:</strong> {paymentInstructions.transferContent}</p>
+                  <p><strong>Số tiền:</strong> {paymentInstructions.amount?.toLocaleString('vi-VN')} VNĐ</p>
+                  {paymentInstructions.customerAccountNumber && (
+                    <p><strong>Số tài khoản của bạn:</strong> {paymentInstructions.customerAccountNumber}</p>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="footer">
@@ -353,6 +365,12 @@ export default function OrderSuccess() {
                     <span className="text-gray-600 font-medium">Số tiền:</span>
                     <span className="font-bold text-xl text-red-600">{paymentInstructions.amount?.toLocaleString('vi-VN')} VNĐ</span>
                   </div>
+                  {paymentInstructions.customerAccountNumber && (
+                    <div className="flex justify-between pt-2">
+                      <span className="text-gray-600">Số tài khoản của bạn (đã nhập):</span>
+                      <span className="font-mono font-medium text-gray-900">{paymentInstructions.customerAccountNumber}</span>
+                    </div>
+                  )}
                 </div>
 
                 {paymentInstructions.qrCode && (

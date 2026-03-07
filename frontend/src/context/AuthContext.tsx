@@ -1,7 +1,25 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from '../utils/axios';
 
-interface User {
+export interface Address {
+  fullName?: string;
+  phone?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+  isDefault?: boolean;
+}
+
+export interface PaymentMethod {
+  cardType?: string;
+  lastFour?: string;
+  expiryDate?: string;
+  isDefault?: boolean;
+}
+
+export interface User {
   _id: string;
   firstName: string;
   lastName: string;
@@ -11,6 +29,8 @@ interface User {
   role: string;
   gender?: string;
   dateOfBirth?: string;
+  addresses?: Address[];
+  paymentMethods?: PaymentMethod[];
 }
 
 interface AuthContextType {
@@ -20,6 +40,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<any>;
   logout: () => void;
   updateProfile: (userData: FormData | Partial<User>) => Promise<any>;
+  fetchProfile: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -89,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': userData instanceof FormData ? 'multipart/form-data' : 'application/json'
+            ...(userData instanceof FormData ? {} : { 'Content-Type': 'application/json' })
           }
         }
       );
@@ -112,8 +133,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const fetchProfile = async () => {
+    try {
+      const response = await axios.get('/auth/profile');
+      if (response.data.success && response.data.data) {
+        const fullUser = response.data.data;
+        setUser(fullUser);
+        localStorage.setItem('user', JSON.stringify(fullUser));
+        return fullUser;
+      }
+    } catch (err) {
+      console.error('Fetch profile error:', err);
+    }
+    return null;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, updateProfile }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, updateProfile, fetchProfile }}>
       {children}
     </AuthContext.Provider>
   );

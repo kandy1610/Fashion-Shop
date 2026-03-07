@@ -145,6 +145,13 @@ const updateUserProfile = async (req, res) => {
       user.gender = req.body.gender || user.gender;
       user.dateOfBirth = req.body.dateOfBirth || user.dateOfBirth;
 
+      if (req.body.addresses !== undefined && Array.isArray(req.body.addresses)) {
+        user.addresses = req.body.addresses;
+      }
+      if (req.body.paymentMethods !== undefined && Array.isArray(req.body.paymentMethods)) {
+        user.paymentMethods = req.body.paymentMethods;
+      }
+
       // if multer attached a file, update avatar URL
       if (req.file) {
         // build a URL accessible from browser
@@ -172,6 +179,8 @@ const updateUserProfile = async (req, res) => {
           dateOfBirth: updatedUser.dateOfBirth,
           avatar: updatedUser.avatar,
           role: updatedUser.role,
+          addresses: updatedUser.addresses,
+          paymentMethods: updatedUser.paymentMethods,
           token: generateToken(updatedUser._id)
         }
       });

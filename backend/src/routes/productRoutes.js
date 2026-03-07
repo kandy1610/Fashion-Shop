@@ -64,9 +64,9 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    // Category filter
+    // Category filter (case-insensitive)
     if (category) {
-      query.category = category;
+      query.category = { $regex: new RegExp(category, 'i') };
     }
 
     // Price filter
