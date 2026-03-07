@@ -6,10 +6,10 @@ import { useWishlist } from '../hooks/useWishlist';
 import { useAuth } from '../context/AuthContext';
 
 const categories = [
-  { id: 1, name: 'Nam', image: 'https://channel.mediacdn.vn/428462621602512896/2022/5/11/vulcano-1-1652263546844522213228.jpg' },
-  { id: 2, name: 'Nữ', image: 'https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&q=80&w=800' },
-  { id: 3, name: 'Nam - Nữ', image: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80&w=800' },
-  { id: 4, name: 'Trẻ em', image: 'https://tse1.mm.bing.net/th/id/OIP.g5MCF6VNZT-BLVnfDZ3lfAHaE7?pid=Api&P=0&h=180' },
+  { id: 1, name: 'Nam', query: 'Nam', image: 'https://channel.mediacdn.vn/428462621602512896/2022/5/11/vulcano-1-1652263546844522213228.jpg' },
+  { id: 2, name: 'Nữ', query: 'Nữ', image: 'https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&q=80&w=800' },
+  { id: 3, name: 'Nam - Nữ', query: 'Nam - Nữ', image: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&q=80&w=800' },
+  { id: 4, name: 'Trẻ em', query: 'Trẻ em', image: 'https://tse1.mm.bing.net/th/id/OIP.g5MCF6VNZT-BLVnfDZ3lfAHaE7?pid=Api&P=0&h=180' },
 ];
 
 interface Product {
@@ -138,7 +138,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-gray-900 mb-10 text-center">Danh mục sản phẩm</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {categories.map((category) => (
-              <Link key={category.id} to={`/products?category=${category.name.toLowerCase()}`} className="group relative rounded-lg overflow-hidden block aspect-4/5">
+              <Link key={category.id} to={`/products?category=${encodeURIComponent(category.query)}`} className="group relative rounded-lg overflow-hidden block aspect-4/5">
                 <img 
                   src={category.image} 
                   alt={category.name} 

@@ -12,6 +12,42 @@ const {
 // @access  Public
 router.get('/featured', getFeaturedProducts);
 
+// @desc    Get single product by ID or slug
+// @route   GET /api/products/:id
+// @access  Public
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Try to find by _id first, then by slug
+    let product;
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      product = await Product.findById(id);
+    }
+    
+    if (!product) {
+      product = await Product.findOne({ slug: id });
+    }
+    
+    if (!product) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Product not found' 
+      });
+    }
+
+    res.json({
+      success: true,
+      data: product
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+});
+
 // @desc    Search products
 // @route   GET /api/products/search
 // @access  Public

@@ -35,7 +35,7 @@ export default function About() {
             <div className="lg:w-1/2">
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Câu chuyện của chúng tôi</h2>
               <p className="text-gray-600 mb-4 leading-relaxed">
-                Được thành lập vào năm 2010 tại TP. Hồ Chí Minh, Kandy khởi đầu với một ý tưởng đơn giản: 
+                Được thành lập vào năm 2010 tại TP. Cần Thơ, Kandy khởi đầu với một ý tưởng đơn giản: 
                 tạo ra những sản phẩm thời trang chất lượng cao, phong cách và phù hợp với mọi người. 
                 Từ một cửa hàng nhỏ tại Quận 1, chúng tôi đã phát triển thành thương hiệu thời trang được 
                 yêu thích trên toàn quốc.
@@ -163,10 +163,10 @@ export default function About() {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { name: 'Nguyễn Thị Hương', role: 'Nhà sáng lập & CEO', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400' },
+              { name: 'Cao Minh Kỳ', role: 'Nhà sáng lập & CEO', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400' },
               { name: 'Trần Minh Tuấn', role: 'Giám đốc Thiết kế', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400' },
               { name: 'Lê Thị Mai', role: 'Giám đốc Marketing', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=400' },
-              { name: 'Phạm Văn Đức', role: 'Giám đốc Vận hành', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=400' },
+              { name: 'Phạm Huỳnh Hương', role: 'Giám đốc Vận hành', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400' },
             ].map((member, idx) => (
               <div key={idx} className="text-center group">
                 <div className="relative mb-4 overflow-hidden rounded-2xl aspect-square">

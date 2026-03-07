@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { User, MapPin, CreditCard, Heart, LogOut, Camera, Search, RefreshCw, CheckCircle, Plus, Trash2, ShoppingCart } from 'lucide-react';
+import { User, MapPin, CreditCard, Heart, LogOut, Camera, Search, RefreshCw, CheckCircle, Plus, Trash2, ShoppingCart, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
@@ -226,7 +226,7 @@ export default function Profile() {
                   onClick={() => setActiveTab('orders')}
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-md transition-colors ${activeTab === 'orders' ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
-                  <ShoppingBagIcon className="w-5 h-5" />
+                  <ShoppingBag className="w-5 h-5" />
                   <span>Đơn hàng của tôi</span>
                 </button>
                 <button 
@@ -465,7 +465,7 @@ export default function Profile() {
                         <div key={p._id} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100">
                           <img src={p.images?.[0]} alt={p.name} className="w-20 h-24 object-cover rounded-lg" />
                           <div className="flex-1">
-                            <Link to={`/product/${p._id}`} className="font-medium text-gray-900 hover:text-blue-600">{p.name}</Link>
+                            <Link to={`/product/${p.slug || p._id}`} className="font-medium text-gray-900 hover:text-blue-600">{p.name}</Link>
                             <p className="text-sm text-gray-500 mt-1">{(p.price || 0).toLocaleString('vi-VN')} VNĐ</p>
                           </div>
                           <div className="flex gap-2">
@@ -656,24 +656,3 @@ export default function Profile() {
   );
 }
 
-// Simple icon component since ShoppingBag is already used in Header
-function ShoppingBagIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-      <path d="M3 6h18" />
-      <path d="M16 10a4 4 0 0 1-8 0" />
-    </svg>
-  )
-}

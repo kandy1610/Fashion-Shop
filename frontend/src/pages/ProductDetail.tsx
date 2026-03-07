@@ -21,16 +21,15 @@ export default function ProductDetail() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`/products`);
-        if (response.data.success) {
-          // Find product by slug (id param from URL is actually slug)
-          const found = response.data.data.find((p: any) => p.slug === id || p._id === id);
-          if (found) {
-            setProduct(found);
-            setSelectedSize(found.sizes?.[0] || '');
-            setSelectedColor(found.colors?.[0] || '');
-            setMainImage(found.images?.[0] || '');
-          }
+        const response = await axios.get(`/products/${id}`);
+        if (response.data.success && response.data.data) {
+          const found = response.data.data;
+          setProduct(found);
+          setSelectedSize(found.sizes?.[0] || '');
+          setSelectedColor(found.colors?.[0] || '');
+          setMainImage(found.images?.[0] || '');
+          // Check wishlist after product is loaded
+          checkWishlist(found._id);
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -39,16 +38,17 @@ export default function ProductDetail() {
       }
     };
     fetchProduct();
-    checkWishlist();
   }, [id]);
 
-  const checkWishlist = async () => {
+  const checkWishlist = async (productId?: string) => {
+    const pid = productId || product?._id;
+    if (!pid) return;
     const wishlist = await getWishlist();
     if (wishlist && wishlist.items && Array.isArray(wishlist.items)) {
       // Check if product id is in wishlist - handle both populated and non-populated items
       const isInWishlist = wishlist.items.some((item: any) => {
         const itemId = typeof item === 'string' ? item : (item._id?.toString() || item.productId);
-        return itemId === id;
+        return itemId === pid;
       });
       setIsWishlisted(isInWishlist);
     }
@@ -56,13 +56,13 @@ export default function ProductDetail() {
 
   const handleWishlist = async () => {
     if (isWishlisted) {
-      const result = await removeFromWishlist(id!);
+      const result = await removeFromWishlist(product._id);
       if (result) {
         setIsWishlisted(false);
         setMessage({ type: 'success', text: 'Đã xóa khỏi yêu thích' });
       }
     } else {
-      const result = await addToWishlist(id!);
+      const result = await addToWishlist(product._id);
       if (result.success) {
         setIsWishlisted(true);
         setMessage(result);
@@ -74,7 +74,7 @@ export default function ProductDetail() {
   };
 
   const handleAddToCart = async () => {
-    const result = await addToCart(id!, quantity, selectedSize, selectedColor);
+    const result = await addToCart(product._id, quantity, selectedSize, selectedColor);
     setMessage({ type: result.success ? 'success' : 'error', text: result.message });
     if (result.success) {
       window.dispatchEvent(new Event('cartUpdated'));

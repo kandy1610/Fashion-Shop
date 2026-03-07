@@ -61,9 +61,20 @@ export default function Products() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const url = searchQuery 
-        ? `/products?search=${encodeURIComponent(searchQuery)}`
-        : '/products';
+      // Build URL with search and category params
+      let url = '/products';
+      const params = new URLSearchParams();
+      
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+      if (categoryParam) {
+        params.append('category', categoryParam);
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
       
       const response = await axios.get(url);
       if (response.data.success) {
@@ -396,7 +407,7 @@ export default function Products() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                 {paginatedProducts.map((product) => (
                   <div key={product._id} className="group">
-                    <Link to={`/product/${product._id}`} className="block relative aspect-3/4 rounded-lg overflow-hidden mb-4 bg-gray-100">
+                    <Link to={`/product/${product.slug || product._id}`} className="block relative aspect-3/4 rounded-lg overflow-hidden mb-4 bg-gray-100">
                       <img 
                         src={product.images[0] || 'https://via.placeholder.com/800'} 
                         alt={product.name} 
@@ -417,7 +428,7 @@ export default function Products() {
                     </Link>
                     <div>
                       <h3 className="text-sm font-medium text-gray-900 mb-1">
-                        <Link to={`/product/${product._id}`} className="hover:text-blue-600 transition-colors">
+                        <Link to={`/product/${product.slug || product._id}`} className="hover:text-blue-600 transition-colors">
                           {product.name}
                         </Link>
                       </h3>

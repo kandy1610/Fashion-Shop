@@ -10,12 +10,23 @@ export const useCart = () => {
         return { success: false, message: 'Vui lòng đăng nhập trước' };
       }
 
+      const token = localStorage.getItem('token');
+      console.log('Adding to cart - Token exists:', !!token);
+      console.log('Adding to cart - User:', user.email);
+      console.log('Adding to cart - Product:', productId);
+
       const response = await axios.post('/cart/add', {
         productId,
         quantity,
         size,
         color
+      }, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : ''
+        }
       });
+
+      console.log('Add to cart response:', response.data);
 
       return {
         success: true,
@@ -23,6 +34,7 @@ export const useCart = () => {
         data: response.data.data
       };
     } catch (error: any) {
+      console.error('Add to cart error:', error.response?.data || error.message);
       return {
         success: false,
         message: error.response?.data?.message || 'Không thể thêm vào giỏ hàng'
@@ -33,9 +45,14 @@ export const useCart = () => {
   const getCart = async () => {
     try {
       const response = await axios.get('/cart');
-      return response.data.data;
+      console.log('Cart API response:', response.data);
+      // Handle different response formats
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+      return null;
     } catch (error: any) {
-      console.error('Error fetching cart:', error);
+      console.error('Error fetching cart:', error.response?.data || error.message);
       return null;
     }
   };

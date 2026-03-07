@@ -18,7 +18,7 @@ interface ChatMessage {
   products?: Product[];
 }
 
-type ChatStep = 'gender' | 'category' | 'price' | 'result' | 'finished';
+type ChatStep = 'gender' | 'category' | 'price' | 'result' | 'finished' | 'help';
 
 const genderOptions = [
   { value: 'nam', label: 'Nam' },
@@ -42,6 +42,14 @@ const priceRanges = [
   { value: '1000000-99999999', label: 'Trên 1 triệu' },
 ];
 
+const helpOptions = [
+  { value: 'howtobuy', label: 'Cách mua hàng' },
+  { value: 'payment', label: 'Thanh toán' },
+  { value: 'shipping', label: 'Vận chuyển' },
+  { value: 'return', label: 'Đổi trả' },
+  { value: 'contact', label: 'Liên hệ' },
+];
+
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -55,6 +63,7 @@ export default function Chatbot() {
     maxPrice: 99999999,
   });
   const [loading, setLoading] = useState(false);
+  const [showOptions, setShowOptions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -82,6 +91,11 @@ export default function Chatbot() {
       ]);
     }
   }, [isOpen]);
+
+  const showHelpOptions = () => {
+    setStep('help');
+    addMessage('bot', 'Bạn cần hỗ trợ gì? Chọn một trong các mục dưới đây nhé!');
+  };
 
   const addMessage = (role: 'user' | 'bot', content: string, products?: Product[]) => {
     setMessages((prev) => [
@@ -160,6 +174,7 @@ export default function Chatbot() {
 
   const handleRestart = () => {
     setStep('gender');
+    setShowOptions(true);
     setPreferences({ gender: '', category: '', minPrice: 0, maxPrice: 99999999 });
     setMessages([
       {
@@ -170,6 +185,35 @@ export default function Chatbot() {
     ]);
   };
 
+  const handleHelpSelect = (helpType: string) => {
+    // Hide options after selecting and change step to hide help options
+    setShowOptions(false);
+    setStep('gender'); // Change step to hide help options
+    
+    let content = '';
+    switch (helpType) {
+      case 'howtobuy':
+        content = '**Cách mua hàng:**\n\n1. Tìm sản phẩm bạn muốn mua\n2. Nhấn "Thêm vào giỏ" để cho vào giỏ hàng\n3. Vào giỏ hàng kiểm tra sản phẩm\n4. Nhấn "Tiếp tục thanh toán"\n5. Điền thông tin giao hàng\n6. Chọn phương thức thanh toán\n7. Xác nhận đặt hàng';
+        break;
+      case 'payment':
+        content = '**Phương thức thanh toán:**\n\n• **COD** - Thanh toán khi nhận hàng\n• **Chuyển khoản** - Chuyển khoản ngân hàng\n• **Ví điện tử** - Momo, ZaloPay\n\nShop chấp nhận các ngân hàng: VCB, MB, ACB và nhiều ngân hàng khác.';
+        break;
+      case 'shipping':
+        content = '**Vận chuyển:**\n\n• Giao hàng nhanh 2-3 ngày\n• Phí vận chuyển: 30.000 VNĐ/đơn\n• Miễn phí vận chuyển cho đơn hàng từ 500.000 VNĐ\n\nShop giao hàng toàn quốc!';
+        break;
+      case 'return':
+        content = '**Chính sách đổi trả:**\n\n• Đổi trả trong 7 ngày kể từ ngày nhận hàng\n• Sản phẩm còn nguyên tag, chưa qua sử dụng\n• Liên hệ hotline để được hướng dẫn đổi trả\n\nQuý khách vui lòng giữ hóa đơn mua hàng!';
+        break;
+      case 'contact':
+        content = '**Liên hệ:**\n\n• Hotline: 1900 0000\n• Email: support@kandyfashion.com\n• Fanpage: KANDY Fashion\n\nGiờ mở cửa: 8h - 21h (T2 - CN)';
+        break;
+    }
+    addMessage('user', helpOptions.find(h => h.value === helpType)?.label || '');
+    setTimeout(() => {
+      addMessage('bot', content);
+    }, 300);
+  };
+
   const handleSendMessage = () => {
     if (!input.trim()) return;
     addMessage('user', input);
@@ -177,7 +221,17 @@ export default function Chatbot() {
     
     // Simple keyword matching for natural language
     const text = input.toLowerCase();
-    if (text.includes('nam') && !text.includes('nữ')) {
+    if (text.includes('cách mua') || text.includes('hướng dẫn') || text.includes('mua hàng')) {
+      handleHelpSelect('howtobuy');
+    } else if (text.includes('thanh toán') || text.includes('trả tiền')) {
+      handleHelpSelect('payment');
+    } else if (text.includes('vận chuyển') || text.includes('giao hàng') || text.includes('ship')) {
+      handleHelpSelect('shipping');
+    } else if (text.includes('đổi') || text.includes('trả')) {
+      handleHelpSelect('return');
+    } else if (text.includes('liên hệ') || text.includes('contact') || text.includes('hotline')) {
+      handleHelpSelect('contact');
+    } else if (text.includes('nam') && !text.includes('nữ')) {
       handleGenderSelect('nam');
     } else if (text.includes('nữ')) {
       handleGenderSelect('nữ');
@@ -195,6 +249,11 @@ export default function Chatbot() {
       handlePriceSelect('0-200000');
     } else if (text.includes('500') || text.includes('1 triệu') || text.includes('1tr')) {
       handlePriceSelect('500000-1000000');
+    } else if (text.includes('giúp') || text.includes('help') || text.includes('?') || text.includes('tư vấn')) {
+      setStep('help');
+      setTimeout(() => {
+        addMessage('bot', 'Bạn cần hỗ trợ gì? Chọn một trong các mục dưới đây nhé!');
+      }, 300);
     } else {
       setTimeout(() => {
         addMessage('bot', 'Tôi không hiểu ý bạn. Bạn có thể chọn từ các tùy chọn bên dưới hoặc nhập lại nhé!');
@@ -302,48 +361,109 @@ export default function Chatbot() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Options */}
-              {step !== 'result' && step !== 'finished' && (
+              {/* Toggle Options Button - Show when options are hidden */}
+              {!showOptions && step !== 'result' && step !== 'finished' && (
+                <div className="p-2 border-t border-gray-100 bg-gray-50">
+                  <button
+                    onClick={() => setShowOptions(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                    Hiện các lựa chọn
+                  </button>
+                </div>
+              )}
+
+              {/* Options - Hide when showOptions is false */}
+              {showOptions && step !== 'result' && step !== 'finished' && step !== 'help' && (
                 <div className="p-3 border-t border-gray-100">
                   {step === 'gender' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      {genderOptions.map((opt) => (
-                        <button
-                          key={opt.value}
-                          onClick={() => handleGenderSelect(opt.value)}
-                          className="px-3 py-2 text-sm bg-gray-100 hover:bg-blue-100 rounded-lg transition-colors"
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                    <div className="space-y-2">
+                      <p className="text-xs text-gray-500 mb-1">Tìm sản phẩm:</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {genderOptions.map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => handleGenderSelect(opt.value)}
+                            className="px-3 py-2 text-sm bg-gray-100 hover:bg-blue-100 rounded-lg transition-colors"
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {step === 'category' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      {categoryOptions.map((opt) => (
-                        <button
-                          key={opt.value}
-                          onClick={() => handleCategorySelect(opt.value)}
-                          className="px-3 py-2 text-sm bg-gray-100 hover:bg-blue-100 rounded-lg transition-colors"
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                    <div className="space-y-2">
+                      <p className="text-xs text-gray-500 mb-1">Chọn loại sản phẩm:</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {categoryOptions.map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => handleCategorySelect(opt.value)}
+                            className="px-3 py-2 text-sm bg-gray-100 hover:bg-blue-100 rounded-lg transition-colors"
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {step === 'price' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      {priceRanges.map((opt) => (
-                        <button
-                          key={opt.value}
-                          onClick={() => handlePriceSelect(opt.value)}
-                          className="px-3 py-2 text-sm bg-gray-100 hover:bg-blue-100 rounded-lg transition-colors"
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
+                    <div className="space-y-2">
+                      <p className="text-xs text-gray-500 mb-1">Chọn mức giá:</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {priceRanges.map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => handlePriceSelect(opt.value)}
+                            className="px-3 py-2 text-sm bg-gray-100 hover:bg-blue-100 rounded-lg transition-colors"
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
+                  <button
+                    onClick={showHelpOptions}
+                    className="w-full mt-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  >
+                    💬 Bạn cần hỗ trợ khác?
+                  </button>
+                </div>
+              )}
+
+              {/* Help Options */}
+              {step === 'help' && (
+                <div className="p-3 border-t border-gray-100">
+                  <div className="space-y-2">
+                    {helpOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => handleHelpSelect(opt.value)}
+                        className="w-full px-3 py-2 text-sm text-left bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors"
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setStep('gender');
+                      setShowOptions(true);
+                      setMessages([
+                        {
+                          id: Date.now(),
+                          role: 'bot',
+                          content: 'OK! Hãy bắt đầu lại nhé. Bạn muốn tìm sản phẩm cho ai?',
+                        },
+                      ]);
+                    }}
+                    className="w-full mt-2 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    ← Quay lại tìm sản phẩm
+                  </button>
                 </div>
               )}
 

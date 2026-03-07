@@ -131,7 +131,7 @@ export default function Wishlist() {
                       alt={product.name} 
                       className="w-20 h-24 object-cover rounded-md mr-4"
                     />
-                    <Link to={`/product/${product._id}`} className="font-medium text-gray-900 hover:text-blue-600">
+                    <Link to={`/product/${product.slug || product._id}`} className="font-medium text-gray-900 hover:text-blue-600">
                       {product.name}
                     </Link>
                   </div>

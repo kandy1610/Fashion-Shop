@@ -19,6 +19,7 @@ interface CartProduct extends CartItem {
   name: string;
   price: number;
   images: string[];
+  slug: string;
 }
 
 const SHIPPING_COST = 50000;
@@ -96,6 +97,7 @@ export default function Cart() {
             name: productInfo?.name || item.name || 'Unknown Product',
             price: productInfo?.price || item.price || 0,
             images: productInfo?.images || item.images || ['https://via.placeholder.com/80'],
+            slug: productInfo?.slug || '',
             quantity: item.quantity || 1,
             size: item.size || '',
             color: item.color || '',
@@ -199,7 +201,7 @@ export default function Cart() {
                           className="w-20 h-24 object-cover rounded-md mr-4"
                         />
                         <div>
-                          <Link to={`/product/${item.productId}`} className="font-medium text-gray-900 hover:text-blue-600 block mb-1">
+                          <Link to={`/product/${item.slug || item.productId}`} className="font-medium text-gray-900 hover:text-blue-600 block mb-1">
                             {item.name}
                           </Link>
                           {item.size && <p className="text-sm text-gray-500">Size: {item.size}</p>}
@@ -240,17 +242,7 @@ export default function Cart() {
                   ))}
                 </div>
 
-                <div className="p-6 bg-gray-50 flex justify-between items-center border-t border-gray-100 flex-col sm:flex-row gap-4">
-                  <div className="flex space-x-4 w-full sm:w-auto">
-                    <input 
-                      type="text" 
-                      placeholder="Mã giảm giá" 
-                      className="border border-gray-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 flex-1 sm:flex-none"
-                    />
-                    <button className="bg-gray-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors">
-                      Áp dụng
-                    </button>
-                  </div>
+                <div className="p-6 bg-gray-50 flex justify-end items-center border-t border-gray-100">
                   <button 
                     onClick={fetchCartData}
                     className="text-gray-600 hover:text-gray-900 text-sm font-medium"

@@ -211,7 +211,7 @@ export default function Header() {
                   {searchResults.map((product) => (
                     <button
                       key={product._id}
-                      onClick={() => handleProductClick(product._id)}
+                      onClick={() => handleProductClick(product.slug || product._id)}
                       className="w-full px-4 py-3 flex items-center space-x-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
                     >
                       <div className="w-12 h-12 bg-gray-100 rounded-md overflow-hidden shrink-0">
