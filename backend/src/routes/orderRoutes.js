@@ -13,6 +13,7 @@ const {
   updateOrderStatus,
   updatePaymentStatus,
   cancelOrder,
+  getCancelInfo,
   paymentWebhook,
   getOrderStats
 } = require('../controllers/orderController');
@@ -39,6 +40,9 @@ router.post('/:id/confirm-payment', confirmPayment);
 
 // Cancel order (user)
 router.delete('/:id', cancelOrder);
+
+// Check if order can be cancelled
+router.get('/:id/cancel-info', getCancelInfo);
 
 // Admin routes
 router.put('/:id/status', admin, updateOrderStatus);

@@ -44,7 +44,6 @@ export default function Footer() {
               <li><Link to="/products?category=men" className="hover:text-white transition-colors">Thời trang Nam</Link></li>
               <li><Link to="/products?category=women" className="hover:text-white transition-colors">Thời trang Nữ</Link></li>
               <li><Link to="/products?category=kids" className="hover:text-white transition-colors">Thời trang Trẻ em</Link></li>
-              <li><Link to="/sale" className="hover:text-white transition-colors">Khuyến mãi & Giảm giá</Link></li>
             </ul>
           </div>
 

@@ -27,6 +27,10 @@ const BANK_ACCOUNTS = {
   }
 };
 
+// Thời gian cho phép hủy đơn hàng (12 giờ tính bằng mili giây)
+const CANCEL_WINDOW_HOURS = 12;
+const CANCEL_WINDOW_MS = CANCEL_WINDOW_HOURS * 60 * 60 * 1000;
+
 // Generate unique order number
 const generateOrderNumber = () => {
   const timestamp = Date.now();
@@ -161,7 +165,7 @@ const createOrder = async (req, res) => {
       await Product.findByIdAndUpdate(
         item.productId,
         { $inc: { stock: -item.quantity } },
-        { new: true }
+        { returnDocument: 'after' }
       );
     }
 
@@ -172,7 +176,7 @@ const createOrder = async (req, res) => {
     await Cart.findOneAndUpdate(
       { userId: req.user._id },
       { items: [] },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     // Populate product details for response
@@ -591,7 +595,7 @@ const updateOrderStatus = async (req, res) => {
         await Product.findByIdAndUpdate(
           item.productId,
           { $inc: { stock: item.quantity } },
-          { new: true }
+          { returnDocument: 'after' }
         );
       }
       order.cancelledAt = new Date();
@@ -663,7 +667,7 @@ const updatePaymentStatus = async (req, res) => {
         await Product.findByIdAndUpdate(
           item.productId,
           { $inc: { stock: item.quantity } },
-          { new: true }
+          { returnDocument: 'after' }
         );
       }
     }
@@ -683,7 +687,7 @@ const updatePaymentStatus = async (req, res) => {
   }
 };
 
-// @desc    Cancel order
+// @desc    Cancel order (with 12-hour limit)
 // @route   DELETE /api/orders/:id
 // @access  Private
 const cancelOrder = async (req, res) => {
@@ -702,10 +706,23 @@ const cancelOrder = async (req, res) => {
       });
     }
 
+    // Kiểm tra nếu đơn hàng đã giao hoặc đã hủy
     if (['shipped', 'delivered', 'cancelled'].includes(order.status)) {
       return res.status(400).json({
         success: false,
         message: 'Không thể hủy đơn hàng này'
+      });
+    }
+
+    // Kiểm tra thời gian hủy trong vòng 12 giờ
+    const orderCreatedAt = new Date(order.createdAt).getTime();
+    const currentTime = Date.now();
+    const timeSinceOrder = currentTime - orderCreatedAt;
+
+    if (timeSinceOrder > CANCEL_WINDOW_MS) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn hàng đã quá thời hạn hủy (12 giờ). Bạn không thể hủy đơn hàng này. Vui liên hệ hotline để được hỗ trợ.'
       });
     }
 
@@ -714,7 +731,7 @@ const cancelOrder = async (req, res) => {
       await Product.findByIdAndUpdate(
         item.productId,
         { $inc: { stock: item.quantity } },
-        { new: true }
+        { returnDocument: 'after' }
       );
     }
 
@@ -725,9 +742,83 @@ const cancelOrder = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Đơn hàng đã được hủy',
+      message: 'Đơn hàng đã được hủy thành công',
       data: order
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+// @desc    Check if order can be cancelled
+// @route   GET /api/orders/:id/cancel-info
+// @access  Private
+const getCancelInfo = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Đơn hàng không tìm thấy'
+      });
+    }
+
+    // Kiểm tra nếu đơn hàng đã giao hoặc đã hủy
+    if (['shipped', 'delivered', 'cancelled'].includes(order.status)) {
+      return res.json({
+        success: true,
+        data: {
+          canCancel: false,
+          reason: 'Đơn hàng đã được giao hoặc đã hủy',
+          remainingTime: null
+        }
+      });
+    }
+
+    // Tính thời gian đã trôi qua
+    const orderCreatedAt = new Date(order.createdAt).getTime();
+    const currentTime = Date.now();
+    const timeSinceOrder = currentTime - orderCreatedAt;
+
+    // Nếu chưa quá 12 giờ
+    if (timeSinceOrder < CANCEL_WINDOW_MS) {
+      const remainingTimeMs = CANCEL_WINDOW_MS - timeSinceOrder;
+      const remainingHours = Math.floor(remainingTimeMs / (1000 * 60 * 60));
+      const remainingMinutes = Math.floor((remainingTimeMs % (1000 * 60 * 60)) / (1000 * 60));
+
+      let remainingTimeText = '';
+      if (remainingHours > 0) {
+        remainingTimeText = `${remainingHours} giờ ${remainingMinutes} phút`;
+      } else {
+        remainingTimeText = `${remainingMinutes} phút`;
+      }
+
+      return res.json({
+        success: true,
+        data: {
+          canCancel: true,
+          remainingTime: remainingTimeMs,
+          remainingTimeText: remainingTimeText,
+          deadline: new Date(orderCreatedAt + CANCEL_WINDOW_MS)
+        }
+      });
+    } else {
+      return res.json({
+        success: true,
+        data: {
+          canCancel: false,
+          reason: 'Đã quá thời hạn hủy đơn (12 giờ)',
+          remainingTime: null
+        }
+      });
+    }
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -882,6 +973,7 @@ module.exports = {
   updateOrderStatus,
   updatePaymentStatus,
   cancelOrder,
+  getCancelInfo,
   paymentWebhook,
   getOrderStats
 };

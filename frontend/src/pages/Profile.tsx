@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { User, MapPin, CreditCard, Heart, LogOut, Camera, Search, RefreshCw, CheckCircle, Plus, Trash2, ShoppingCart, ShoppingBag } from 'lucide-react';
+import { User, MapPin, CreditCard, Heart, LogOut, Camera, Search, RefreshCw, CheckCircle, Plus, Trash2, ShoppingCart, ShoppingBag, X, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
@@ -58,6 +58,61 @@ export default function Profile() {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [cardForm, setCardForm] = useState<Partial<PaymentMethod> & { _editIndex?: number }>({});
   const [showCardForm, setShowCardForm] = useState(false);
+
+  // Cancel order modal
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelInfo, setCancelInfo] = useState<{ canCancel: boolean; remainingTimeText?: string; reason?: string } | null>(null);
+
+  // Function to check if order can be cancelled
+  const checkCancelInfo = async (orderId: string) => {
+    try {
+      const res = await axios.get(`/orders/${orderId}/cancel-info`);
+      if (res.data?.success) {
+        setCancelInfo(res.data.data);
+      }
+    } catch (error) {
+      console.error('Error checking cancel info:', error);
+    }
+  };
+
+  // Function to handle cancel button click
+  const handleCancelClick = async (orderId: string) => {
+    setCancelOrderId(orderId);
+    setCancelReason('');
+    await checkCancelInfo(orderId);
+    setShowCancelModal(true);
+  };
+
+  // Function to submit cancellation
+  const handleCancelSubmit = async () => {
+    if (!cancelOrderId) return;
+    
+    setCancelLoading(true);
+    try {
+      const res = await axios.delete(`/orders/${cancelOrderId}`, {
+        data: { reason: cancelReason }
+      });
+      
+      if (res.data?.success) {
+        alert('Hủy đơn hàng thành công!');
+        setShowCancelModal(false);
+        // Refresh orders list
+        const ordersRes = await axios.get('/orders', { params: { limit: 20 } });
+        if (ordersRes.data?.success) {
+          setOrders(ordersRes.data.data);
+        }
+      } else {
+        alert(res.data?.message || 'Có lỗi xảy ra');
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Có lỗi xảy ra khi hủy đơn hàng');
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -433,6 +488,14 @@ export default function Profile() {
                                   >
                                     Xem chi tiết
                                   </Link>
+                                  {['pending', 'confirmed'].includes(order.status) && (
+                                    <button
+                                      onClick={() => handleCancelClick(order._id)}
+                                      className="flex-1 sm:flex-none px-4 py-2 rounded-lg border border-red-500 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors text-center"
+                                    >
+                                      Hủy đơn
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -652,6 +715,85 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Cancel Order Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Hủy đơn hàng</h3>
+              <button 
+                onClick={() => setShowCancelModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {cancelInfo?.canCancel ? (
+              <>
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <AlertTriangle className="w-5 h-5" />
+                    <span className="font-medium">Còn {cancelInfo.remainingTimeText} để hủy đơn</span>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác.
+                </p>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Lý do hủy (không bắt buộc)
+                  </label>
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    placeholder="Nhập lý do hủy đơn hàng..."
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowCancelModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Không, giữ lại
+                  </button>
+                  <button
+                    onClick={handleCancelSubmit}
+                    disabled={cancelLoading}
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {cancelLoading ? 'Đang xử lý...' : 'Xác nhận hủy'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 p-4 bg-red-50 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <AlertTriangle className="w-5 h-5" />
+                    <span className="font-medium">Không thể hủy đơn hàng</span>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  {cancelInfo?.reason || 'Đơn hàng đã quá thời hạn hủy (12 giờ) hoặc đã được xử lý.'}
+                </p>
+                <p className="text-sm text-gray-500 mb-4">
+                  Vui liên hệ hotline <strong>0292 3456 789</strong> để được hỗ trợ.
+                </p>
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                >
+                  Đóng
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
