@@ -2,15 +2,42 @@ const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
 
+// Import middleware
+const { protect, admin } = require('../middleware/authMiddleware');
+
 // Import controller functions
 const {
-  getFeaturedProducts
+  getFeaturedProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getAllProductsAdmin
 } = require('../controllers/productController');
 
 // @desc    Get featured products
 // @route   GET /api/products/featured
 // @access  Public
 router.get('/featured', getFeaturedProducts);
+
+// @desc    Get all products (admin)
+// @route   GET /api/products/admin/all
+// @access  Private/Admin
+router.get('/admin/all', protect, admin, getAllProductsAdmin);
+
+// @desc    Create a new product
+// @route   POST /api/products
+// @access  Private/Admin
+router.post('/', protect, admin, createProduct);
+
+// @desc    Update a product
+// @route   PUT /api/products/:id
+// @access  Private/Admin
+router.put('/:id', protect, admin, updateProduct);
+
+// @desc    Delete a product
+// @route   DELETE /api/products/:id
+// @access  Private/Admin
+router.delete('/:id', protect, admin, deleteProduct);
 
 // @desc    Get single product by ID or slug
 // @route   GET /api/products/:id

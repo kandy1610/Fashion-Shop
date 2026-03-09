@@ -312,6 +312,17 @@ export default function Header() {
                         Hồ sơ của tôi
                       </Link>
                       
+                      {user.role === 'admin' && (
+                        <Link
+                          to="/admin"
+                          className="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 font-medium"
+                          onClick={() => setIsProfileMenuOpen(false)}
+                        >
+                          <span className="w-4 h-4 inline mr-2">⚙️</span>
+                          Quản lý sản phẩm
+                        </Link>
+                      )}
+                      
                       <Link
                         to="/profile?tab=orders"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

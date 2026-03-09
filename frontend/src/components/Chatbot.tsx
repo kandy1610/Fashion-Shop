@@ -18,7 +18,7 @@ interface ChatMessage {
   products?: Product[];
 }
 
-type ChatStep = 'gender' | 'category' | 'price' | 'result' | 'finished' | 'help';
+type ChatStep = 'gender' | 'category' | 'price' | 'result' | 'finished' | 'help' | 'search';
 
 const genderOptions = [
   { value: 'nam', label: 'Nam' },
@@ -185,6 +185,33 @@ export default function Chatbot() {
     ]);
   };
 
+  // Direct search function
+  const handleDirectSearch = async (searchQuery: string) => {
+    setStep('search');
+    setLoading(true);
+    try {
+      const response = await axios.get('/products', { 
+        params: { search: searchQuery } 
+      });
+      
+      if (response.data.success && response.data.data?.length > 0) {
+        addMessage('bot', `Tôi đã tìm thấy ${response.data.data.length} sản phẩm cho "${searchQuery}":`, response.data.data.slice(0, 4));
+      } else {
+        addMessage('bot', `Xin lỗi, không tìm thấy sản phẩm nào cho "${searchQuery}". Bạn thử từ khóa khác nhé!`);
+      }
+    } catch (error: any) {
+      console.error('Search error:', error);
+      addMessage('bot', 'Đã xảy ra lỗi khi tìm kiếm. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchClick = () => {
+    setShowOptions(false);
+    addMessage('bot', '🔍 Bạn muốn tìm sản phẩm gì? Hãy nhập từ khóa nhé!');
+  };
+
   const handleHelpSelect = (helpType: string) => {
     // Hide options after selecting and change step to hide help options
     setShowOptions(false);
@@ -216,6 +243,14 @@ export default function Chatbot() {
 
   const handleSendMessage = () => {
     if (!input.trim()) return;
+    
+    // If in search mode, do direct search
+    if (step === 'search') {
+      handleDirectSearch(input);
+      setInput('');
+      return;
+    }
+    
     addMessage('user', input);
     setInput('');
     
@@ -237,6 +272,8 @@ export default function Chatbot() {
       handleGenderSelect('nữ');
     } else if (text.includes('trẻ') || text.includes('bé')) {
       handleGenderSelect('trẻ em');
+    } else if (text.includes('tìm') || text.includes('kiếm') || text.includes('search')) {
+      handleSearchClick();
     } else if (text.includes('áo')) {
       handleCategorySelect('áo');
     } else if (text.includes('quần')) {
