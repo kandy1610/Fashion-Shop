@@ -1,14 +1,25 @@
 🛍️ TỔNG QUAN - TẤT CẢ CHỨC NĂNG CỦA WEBSITE
+
 🔹 TRANG CHỦ (Home)
+
 Hiển thị sản phẩm nổi bật (featured products)
+
 Banner khuyến mãi
+
 Danh mục sản phẩm
+
 Sản phẩm bán chạy
+
 🔹 CỬA HÀNG (Products)
+
 Danh sách tất cả sản phẩm
+
 Tìm kiếm sản phẩm
+
 Lọc theo danh mục, giá, đánh giá
+
 Sắp xếp: giá thấp-cao, mới nhất, phổ biến
+
 Phân trang
 🔹 CHI TIẾT SẢN PHẨM (ProductDetail)
 Hình ảnh sản phẩm (slide/gallery)
