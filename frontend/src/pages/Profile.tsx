@@ -595,22 +595,22 @@ export default function Profile() {
                                     <img src={product?.images?.[0] || product?.image || 'https://via.placeholder.com/80'} alt="Sản phẩm" className="w-full h-full object-cover" />
                                   </div>
                                   <div>
-                                    <p className="font-semibold text-gray-900">{product?.name || firstItem?.name || 'Sản phẩm'}</p>
+<p className="font-semibold text-gray-900 line-clamp-1" title={product?.name || firstItem?.name || 'Sản phẩm'}>{product?.name || firstItem?.name || 'Sản phẩm'}</p>
                                     <p className="text-sm text-gray-500 mt-1">Số lượng: {order.items?.length || 0} sản phẩm</p>
                                   </div>
                                 </div>
-                                <div className="flex gap-3 w-full sm:w-auto">
+                                <div className="flex gap-3 w-full sm:w-auto flex-wrap">
                                   <Link
                                     to={`/order-tracking`}
                                     state={{ orderNumber: order.orderNumber, email: user?.email }}
-                                    className="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium transition-colors text-center"
+                                    className="flex-1 min-w-[120px] sm:flex-none px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium transition-colors text-center"
                                   >
                                     Xem chi tiết
                                   </Link>
                                   {['pending', 'confirmed'].includes(order.status) && (
                                     <button
                                       onClick={() => handleCancelClick(order._id)}
-                                      className="flex-1 sm:flex-none px-4 py-2 rounded-lg border border-red-500 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors text-center"
+                                      className="flex-1 min-w-[80px] sm:flex-none px-4 py-2 rounded-lg border border-red-500 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors text-center"
                                     >
                                       Hủy đơn
                                     </button>

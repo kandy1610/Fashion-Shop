@@ -30,14 +30,14 @@ export const useCart = () => {
 
       return {
         success: true,
-        message: 'Đã thêm vào giỏ hàng',
+        message: 'Đã thêm vào giỏ hàng thành công!',
         data: response.data.data
       };
     } catch (error: any) {
       console.error('Add to cart error:', error.response?.data || error.message);
       return {
         success: false,
-        message: error.response?.data?.message || 'Không thể thêm vào giỏ hàng'
+        message: error.response?.data?.message || 'Không thể thêm vào giỏ hàng. Vui lòng thử lại.'
       };
     }
   };

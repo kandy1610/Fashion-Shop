@@ -40,6 +40,15 @@ const addToCart = async (req, res) => {
       });
     }
 
+    // **NEW: Check stock before adding**
+    const totalQuantity = quantity;
+    if (product.stock < totalQuantity) {
+      return res.status(400).json({
+        success: false,
+        message: `Hết hàng! Chỉ còn ${product.stock} sản phẩm trong kho`
+      });
+    }
+
     // Find or create cart for user
     let cart = await Cart.findOne({ userId: req.user._id });
     if (!cart) {

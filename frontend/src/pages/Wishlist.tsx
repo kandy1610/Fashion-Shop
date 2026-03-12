@@ -74,10 +74,14 @@ export default function Wishlist() {
 
   const handleAddToCart = async (productId: string) => {
     try {
-      await addToCart(productId, 1);
-      alert('Added to cart!');
+      const result = await addToCart(productId, 1);
+      if (result.success) {
+        alert(result.message || 'Đã thêm vào giỏ hàng!');
+      } else {
+        alert(result.message || 'Không thể thêm giỏ hàng');
+      }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to add to cart');
+      alert('Lỗi kết nối. Vui lòng thử lại.');
     }
   };
 

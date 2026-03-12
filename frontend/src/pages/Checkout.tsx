@@ -692,7 +692,7 @@ export default function Checkout() {
                 disabled={submitLoading}
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-3 rounded-lg font-medium transition-colors mt-6"
               >
-                {submitLoading ? 'Đang xử lí...' : currentStep === 3 ? 'Hoàn tất đơn hàng' : 'Tiếp tục'}
+                {submitLoading ? 'Đang xử lí...' : currentStep === 3 ? 'Hoàn tất đơn hàng' : 'Thanh toán'}
               </button>
 
               <button 
