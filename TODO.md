@@ -1,25 +1,14 @@
-# TODO - Admin Product Management
+# TODO: Thêm tính năng đổi mật khẩu tài khoản an toàn
 
-## Backend
+## Các bước thực hiện:
 
-- [x] 1. Đọc Product model để hiểu cấu trúc
-- [x] 2. Thêm CRUD controllers (createProduct, updateProduct, deleteProduct)
-- [x] 3. Cập nhật productRoutes.js với các route mới và middleware admin
+1. ✅ [Hoàn thành] Tạo kế hoạch chỉnh sửa
+2. ✅ Cập nhật backend/src/controllers/authController.js - Thêm logic đổi mật khẩu an toàn trong updateUserProfile
+3. ✅ Cập nhật frontend/src/pages/Profile.tsx - Thêm form đổi mật khẩu (UI + logic + eye toggle hoàn chỉnh)
+4. ⏳ Test toàn bộ flow: Đổi mật khẩu → đăng xuất → đăng nhập bằng mật khẩu mới
+5. ⏳ Hoàn thành task
 
-## Frontend
+**Ghi chú:**
 
-- [x] 4. Tạo trang Admin Dashboard tại /admin
-- [x] 5. Thêm form thêm/sửa sản phẩm
-- [x] 6. Thêm route /admin trong App.tsx
-
-## API Endpoints
-
-- `GET /api/products/admin/all` - Lấy tất cả sản phẩm (admin)
-- `POST /api/products` - Thêm sản phẩm (admin)
-- `PUT /api/products/:id` - Sửa sản phẩm (admin)
-- `DELETE /api/products/:id` - Xóa sản phẩm (admin)
-
-## Hướng dẫn sử dụng
-
-1. Đăng nhập bằng tài khoản admin
-2. Truy cập /admin để quản lý sản phẩm
+- Backend: verify currentPassword trước khi đổi newPassword
+- Frontend: form riêng với current/new/confirm password + validation

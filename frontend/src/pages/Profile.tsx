@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { User, MapPin, CreditCard, Heart, LogOut, Camera, Search, RefreshCw, CheckCircle, Plus, Trash2, ShoppingCart, ShoppingBag, X, AlertTriangle } from 'lucide-react';
+import { User, MapPin, CreditCard, Heart, LogOut, Camera, Search, RefreshCw, CheckCircle, Plus, Trash2, ShoppingCart, ShoppingBag, X, AlertTriangle, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../hooks/useWishlist';
 import { useCart } from '../hooks/useCart';
@@ -38,6 +38,16 @@ export default function Profile() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Password change state
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   // Orders tab
   const [orders, setOrders] = useState<any[]>([]);
@@ -205,7 +215,7 @@ export default function Profile() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('firstName', firstName);
@@ -223,6 +233,28 @@ export default function Profile() {
       setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công' });
     } else {
       setMessage({ type: 'error', text: result.message || 'Cập nhật thất bại' });
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ type: 'error', text: 'Xác nhận mật khẩu không khớp' });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordMessage({ type: 'error', text: 'Mật khẩu mới phải có ít nhất 6 ký tự' });
+      return;
+    }
+
+    const result = await updateProfile({ currentPassword, newPassword });
+    if (result.success) {
+      setPasswordMessage({ type: 'success', text: 'Đổi mật khẩu thành công' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      setPasswordMessage({ type: 'error', text: result.message || 'Đổi mật khẩu thất bại' });
     }
   };
 
@@ -396,12 +428,99 @@ export default function Profile() {
                       </div>
                     </div>
 
-                    <div className="pt-4">
+                  <div className="pt-4">
                       <button type="submit" className="bg-gray-900 text-white px-6 py-2 rounded-md font-medium hover:bg-gray-800 transition-colors">
                         Lưu thay đổi
                       </button>
                     </div>
                   </form>
+
+                  {/* Password Change Section */}
+                  <div className="mt-8 pt-8 border-t border-gray-200">
+                    <button 
+                      type="button"
+                      onClick={() => setShowPasswordSection(!showPasswordSection)}
+                      className="flex items-center gap-2 mb-6 text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      <Lock className="w-4 h-4" />
+                      {showPasswordSection ? 'Ẩn' : 'Đổi mật khẩu'}
+                    </button>
+                    
+                    {showPasswordSection && (
+                      <>
+                        {passwordMessage && (
+                          <p className={`mb-4 text-sm p-3 rounded-md ${passwordMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                            {passwordMessage.text}
+                          </p>
+                        )}
+                        <form onSubmit={handlePasswordChange} className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu hiện tại</label>
+                            <div className="relative">
+                              <input
+                                type={showCurrentPw ? 'text' : 'password'}
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-12 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowCurrentPw(!showCurrentPw)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              >
+                                {showCurrentPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              </button>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới</label>
+                            <div className="relative">
+                              <input
+                                type={showNewPw ? 'text' : 'password'}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-12 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowNewPw(!showNewPw)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              >
+                                {showNewPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              </button>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu mới</label>
+                            <div className="relative">
+                              <input
+                                type={showConfirmPw ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full border border-gray-300 rounded-md px-12 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPw(!showConfirmPw)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              >
+                                {showConfirmPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              </button>
+                            </div>
+                          </div>
+                          <button 
+                            type="submit"
+                            className="w-full bg-blue-600 text-white py-3 px-6 rounded-md font-medium hover:bg-blue-700 transition-colors"
+                          >
+                            Đổi mật khẩu
+                          </button>
+                        </form>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
 

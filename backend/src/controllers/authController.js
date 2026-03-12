@@ -160,8 +160,23 @@ const updateUserProfile = async (req, res) => {
         user.avatar = req.body.avatar;
       }
 
-      if (req.body.password) {
-        user.password = req.body.password;
+      // Handle secure password change
+      const { currentPassword, newPassword } = req.body;
+      if (currentPassword && newPassword) {
+        const isPasswordMatch = await user.comparePassword(currentPassword);
+        if (!isPasswordMatch) {
+          return res.status(400).json({
+            success: false,
+            message: 'Mật khẩu hiện tại không đúng'
+          });
+        }
+        if (newPassword.length < 6) {
+          return res.status(400).json({
+            success: false,
+            message: 'Mật khẩu mới phải có ít nhất 6 ký tự'
+          });
+        }
+        user.password = newPassword;
       }
 
       const updatedUser = await user.save();
