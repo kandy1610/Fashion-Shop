@@ -4,8 +4,6 @@
 
 Hiển thị sản phẩm nổi bật (featured products)
 
-Banner khuyến mãi
-
 Danh mục sản phẩm
 
 Sản phẩm bán chạy

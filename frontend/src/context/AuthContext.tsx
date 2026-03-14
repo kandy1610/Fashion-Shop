@@ -85,6 +85,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('token', userData.token);
         localStorage.setItem('user', JSON.stringify(userData));
         
+        // Refetch full profile to ensure latest data (avatar, addresses, etc.)
+        await fetchProfile();
+        
         return { success: true };
       }
     } catch (error: any) {
@@ -123,6 +126,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(updatedUser.token);
           localStorage.setItem('token', updatedUser.token);
         }
+        // Refetch full profile to sync latest data globally
+        await fetchProfile();
         return { success: true, data: updatedUser };
       }
     } catch (error: any) {

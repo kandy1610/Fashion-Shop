@@ -231,6 +231,8 @@ export default function Profile() {
     const result = await updateProfile(formData);
     if (result.success) {
       setMessage({ type: 'success', text: 'Cập nhật hồ sơ thành công' });
+      // Refetch to sync UI
+      await fetchProfile();
     } else {
       setMessage({ type: 'error', text: result.message || 'Cập nhật thất bại' });
     }
@@ -253,6 +255,8 @@ export default function Profile() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      // Refetch to sync
+      await fetchProfile();
     } else {
       setPasswordMessage({ type: 'error', text: result.message || 'Đổi mật khẩu thất bại' });
     }
